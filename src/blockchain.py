@@ -4,7 +4,7 @@ from geoip import geolite2
 url = "https://blockchain.info/unconfirmed-transactions?format=json"
 transactions = [] #variable that holds all unique transactions
 delay = 0.5 #delay in seconds between every json request
-iterations = 5 #remember the amount of time is approximatelly iterations*delay
+iterations = 100 #remember the amount of time is approximatelly iterations*delay
 #---<CLASSES>---#
 
 class address: #class representing a bitcoin address

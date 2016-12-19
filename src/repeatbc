@@ -1,0 +1,9 @@
+#!/bin/bash
+
+repeats=100
+
+for i in {1..repeats}
+do
+	python2 ./blockchain.py
+done
+
