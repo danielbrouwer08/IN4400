@@ -4,7 +4,7 @@ from geoip import geolite2
 url = "https://blockchain.info/unconfirmed-transactions?format=json"
 transactions = [] #variable that holds all unique transactions
 delay = 0.5 #delay in seconds between every json request
-iterations = 100 #remember the amount of time is approximatelly iterations*delay
+iterations = 500 #remember the amount of time is approximatelly iterations*delay
 #---<CLASSES>---#
 
 class address: #class representing a bitcoin address
@@ -131,17 +131,17 @@ for x in range(0,iterations): #iterate over the getJson function
 
 sources=findUniqueSources(transactions,findUniqueSourceAddresses(transactions))#make a list of all unique sources (each source has an address and corresponding transaction)
 
-print "transactions"                
-for x in range(0, len(transactions)):
-    print(transactions[x])
+#print "transactions"                
+#for x in range(0, len(transactions)):
+#    print(transactions[x])
 
 #print "sourceaddrs"
 #for x in range(0, len(srcAddrs)):
 #    print(srcAddrs[x])
 
-print "sources"
-for x in range(0, len(sources)):
-    print(sources[x])
+#print "sources"
+#for x in range(0, len(sources)):
+#    print(sources[x])
 
 
 sourcesJson=jsonpickle.encode(sources)

@@ -1,8 +1,6 @@
 #!/bin/bash
 
-repeats=100
-
-for i in {1..repeats}
+for i in {1..100}
 do
 	python2 ./blockchain.py
 done
