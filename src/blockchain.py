@@ -3,11 +3,10 @@ from time import sleep
 from geoip import geolite2
 url = "https://blockchain.info/unconfirmed-transactions?format=json"
 transactions = [] #variable that holds all unique transactions
+prevTransactions = [] #hold previous transactions
 delay = 0.5 #delay in seconds between every json request
 iterations = 86400 #remember the amount of time is approximatelly iterations*delay
-saveInterval = 400 #after how many iterations you want me to save the intermediate data?
-#iterations = 20
-#saveInterval = 5
+saveInterval = 50 #after how many iterations you want me to save the intermediate data? For accuracy keep this as low as possible (will be more cpu and io intensive)
 
 #---<CLASSES>---#
 
@@ -60,6 +59,14 @@ def findTransactionsBySource(transactions,address): #find in the list of transac
                 break #break the first for loop
 
     return transBySource
+
+def findUniqueTransactions(transactions): #remove any duplicate transactions
+    uniqueTransactions=[]
+    for index, trans in enumerate(transactions): #loop over all transactions
+        if findHash(uniqueTransactions,trans.t_hash) is None:
+            uniqueTransactions.append(trans)
+
+    return uniqueTransactions #return all unique transactions
 
 def findSource(sources,source):
     for index, src in enumerate(sources):
@@ -138,6 +145,9 @@ def writeToFile(name,data):
     file.close()
 
 def calcAndStore():
+    uniqueTransactions=transactions+prevTransactions #concetenate the previous and the new transaction list
+    uniqueTransactions=findUniqueTransactions(uniqueTransactions) #return the unique ones
+    
     sources=findUniqueSources(transactions,findUniqueSourceAddresses(transactions))#make a list of all unique sources (each source has an address and corresponding transaction)
 
     sourcesJson=jsonpickle.encode(sources) #encode sources into json
@@ -147,10 +157,17 @@ def calcAndStore():
     writeToFile("./data/transactionsJson[" + time.ctime() + "].json",transactionsJson) #write to file
 
 for x in range(0,iterations): #iterate over the getJson function
-    getJson()
+    getJson() #get the new transactions list
+
     if (x % saveInterval == 0): #if x is a multiple of the save interval
         print "\rSaving intermediate results"
         calcAndStore()#calculate the sources list and store all results to file
+        if (len(transactions)>=50):
+            prevTransactions=transactions[(len(transactions)-50):len(transactions)] #store the last 50 transactions for the next save
+        else:
+            prevTransactions=transactions
+        
+        transactions=[] #empty the transaction list and start all over again to speed up the program     
     else:
         sleep(delay) #sleep for "delay" seconds
 
