@@ -4,7 +4,11 @@ from geoip import geolite2
 url = "https://blockchain.info/unconfirmed-transactions?format=json"
 transactions = [] #variable that holds all unique transactions
 delay = 0.5 #delay in seconds between every json request
-iterations = 500 #remember the amount of time is approximatelly iterations*delay
+iterations = 86400 #remember the amount of time is approximatelly iterations*delay
+saveInterval = 400 #after how many iterations you want me to save the intermediate data?
+#iterations = 20
+#saveInterval = 5
+
 #---<CLASSES>---#
 
 class address: #class representing a bitcoin address
@@ -103,33 +107,54 @@ def getJson(): #get all json data (50 entries)
 
         if t_index is None: #if hash is not already in the transactions list
             sys.stdout.flush() #flush output
-            print ("\rTransaction count: %d" % (len(transactions))),
+            print ("\rTransaction count: %d       " % (len(transactions))),
             sources=[] #temp list to store the sources into
             destinations=[] #temp list to store the destinations into
             for y in range(0,len(data['txs'][x]['inputs'])): #loop over all input bitcoin addresses
-                sources.append(address(data['txs'][x]['inputs'][y]['prev_out']['addr'],data['txs'][x]['inputs'][y]['prev_out']['value'])) #make a new address object and store it into the sources
-            
+                try:
+                    sources.append(address(data['txs'][x]['inputs'][y]['prev_out']['addr'],data['txs'][x]['inputs'][y]['prev_out']['value'])) #make a new address object and store it into the sources
+                except Exception as e:
+                    print "Error appending a new source"
+                    logging.error(traceback.format_exc()) #log the error
+ 
             for y in range(0,len(data['txs'][x]['out'])): #loop over all output bitcoin addresses
-                destinations.append(address(data['txs'][x]['out'][y]['addr'],data['txs'][x]['out'][y]['value'])) #make a new address object and store it into the destinations list
-            
-            transactions.append(transaction(t_hash,timestamp,ip,sources,destinations)) #add the transaction to the list
+                try:
+                    destinations.append(address(data['txs'][x]['out'][y]['addr'],data['txs'][x]['out'][y]['value'])) #make a new address object and store it into the destinations list
+                except Exception as e:
+                    print "Error appending a new destination"
+                    logging.error(traceback.format_exc()) #log the error
 
+            try:
+                transactions.append(transaction(t_hash,timestamp,ip,sources,destinations)) #add the transaction to the list
+            except Exception as e:
+                print "Error appending the new transaction"
+                logging.error(traceback.format_exc()) #log the error
         #else:
             #print("\rTransaction count: %d ; Transaction already saved" % (len(transactions))),
-
 
 def writeToFile(name,data):
     file = open(name, "w")
     file.write(data)
     file.close()
 
+def calcAndStore():
+    sources=findUniqueSources(transactions,findUniqueSourceAddresses(transactions))#make a list of all unique sources (each source has an address and corresponding transaction)
+
+    sourcesJson=jsonpickle.encode(sources) #encode sources into json
+    transactionsJson=jsonpickle.encode(transactions) #encode transactions into json
+
+    writeToFile("./data/sources[" + time.ctime() + "].json",sourcesJson) #write to file
+    writeToFile("./data/transactionsJson[" + time.ctime() + "].json",transactionsJson) #write to file
+
 for x in range(0,iterations): #iterate over the getJson function
     getJson()
-    sleep(delay) #sleep for "delay" seconds
+    if (x % saveInterval == 0): #if x is a multiple of the save interval
+        print "\rSaving intermediate results"
+        calcAndStore()#calculate the sources list and store all results to file
+    else:
+        sleep(delay) #sleep for "delay" seconds
 
 #srcAddrs=findUniqueSourceAddresses(transactions) #get all the unique addresses
-
-sources=findUniqueSources(transactions,findUniqueSourceAddresses(transactions))#make a list of all unique sources (each source has an address and corresponding transaction)
 
 #print "transactions"                
 #for x in range(0, len(transactions)):
@@ -143,13 +168,5 @@ sources=findUniqueSources(transactions,findUniqueSourceAddresses(transactions))#
 #for x in range(0, len(sources)):
 #    print(sources[x])
 
-
-sourcesJson=jsonpickle.encode(sources)
-transactionsJson=jsonpickle.encode(transactions)
-
-writeToFile("./data/sources[" + time.ctime() + "].json",sourcesJson)
-writeToFile("./data/transactionsJson[" + time.ctime() + "].json",transactionsJson)
-
 #---</FUNCTIONS>---#
-
 
