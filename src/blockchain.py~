@@ -6,7 +6,7 @@ transactions = [] #variable that holds all unique transactions
 prevTransactions = [] #hold previous transactions
 delay = 0.5 #delay in seconds between every json request
 iterations = 86400 #remember the amount of time is approximatelly iterations*delay
-saveInterval = 50 #after how many iterations you want me to save the intermediate data? For accuracy keep this as low as possible (will be more cpu and io intensive)
+saveInterval = 200 #after how many iterations you want me to save the intermediate data? For accuracy keep this as low as possible (will be more cpu and io intensive)
 
 #---<CLASSES>---#
 
@@ -102,42 +102,47 @@ def countryFromIP(ip): #get country from ip
     return country
 
 def getJson(): #get all json data (50 entries)
-    response = urllib.urlopen(url) #retrieve the response
-    data = json.loads(response.read()) #interpret the response as JSON
-    amount = len(data['txs']) #amount of data received
+    try:
+        response = urllib.urlopen(url) #retrieve the response
+        data = json.loads(response.read()) #interpret the response as JSON
+        amount = len(data['txs']) #amount of data received
         
-    for x in range(0, amount): #loop over all the data entries received
-        t_hash=(data['txs'][x]['hash']) #retrieve the hash of the transaction
-        t_index=findHash(transactions,t_hash) #check if hash is already in the transactions list
-        timestamp=(data['txs'][x]['time']) #retrieve the timestamp
-        ip=(data['txs'][x]['relayed_by']) #retrieve the ip
+        for x in range(0, amount): #loop over all the data entries received
+            t_hash=(data['txs'][x]['hash']) #retrieve the hash of the transaction
+            t_index=findHash(transactions,t_hash) #check if hash is already in the transactions list
+            timestamp=(data['txs'][x]['time']) #retrieve the timestamp
+            ip=(data['txs'][x]['relayed_by']) #retrieve the ip
 
-        if t_index is None: #if hash is not already in the transactions list
-            sys.stdout.flush() #flush output
-            print ("\rTransaction count: %d       " % (len(transactions))),
-            sources=[] #temp list to store the sources into
-            destinations=[] #temp list to store the destinations into
-            for y in range(0,len(data['txs'][x]['inputs'])): #loop over all input bitcoin addresses
-                try:
-                    sources.append(address(data['txs'][x]['inputs'][y]['prev_out']['addr'],data['txs'][x]['inputs'][y]['prev_out']['value'])) #make a new address object and store it into the sources
-                except Exception as e:
-                    print "Error appending a new source"
-                    logging.error(traceback.format_exc()) #log the error
+            if t_index is None: #if hash is not already in the transactions list
+                sys.stdout.flush() #flush output
+                print ("\rTransaction count: %d       " % (len(transactions))),
+                sources=[] #temp list to store the sources into
+                destinations=[] #temp list to store the destinations into
+                for y in range(0,len(data['txs'][x]['inputs'])): #loop over all input bitcoin addresses
+                    try:
+                        sources.append(address(data['txs'][x]['inputs'][y]['prev_out']['addr'],data['txs'][x]['inputs'][y]['prev_out']['value'])) #make a new address object and store it into the sources
+                    except Exception as e:
+                        print "Error appending a new source"
+                        logging.error(traceback.format_exc()) #log the error
  
-            for y in range(0,len(data['txs'][x]['out'])): #loop over all output bitcoin addresses
-                try:
-                    destinations.append(address(data['txs'][x]['out'][y]['addr'],data['txs'][x]['out'][y]['value'])) #make a new address object and store it into the destinations list
-                except Exception as e:
-                    print "Error appending a new destination"
-                    logging.error(traceback.format_exc()) #log the error
+                for y in range(0,len(data['txs'][x]['out'])): #loop over all output bitcoin addresses
+                    try:
+                        destinations.append(address(data['txs'][x]['out'][y]['addr'],data['txs'][x]['out'][y]['value'])) #make a new address object and store it into the destinations list
+                    except Exception as e:
+                        print "Error appending a new destination"
+                        logging.error(traceback.format_exc()) #log the error
 
-            try:
-                transactions.append(transaction(t_hash,timestamp,ip,sources,destinations)) #add the transaction to the list
-            except Exception as e:
-                print "Error appending the new transaction"
-                logging.error(traceback.format_exc()) #log the error
+                try:
+                    transactions.append(transaction(t_hash,timestamp,ip,sources,destinations)) #add the transaction to the list
+                except Exception as e:
+                    print "Error appending the new transaction"
+                    logging.error(traceback.format_exc()) #log the error
         #else:
             #print("\rTransaction count: %d ; Transaction already saved" % (len(transactions))),
+        
+    except Exception as e:
+        print "Error getting JSON"
+        logging.error(traceback.format_exc())
 
 def writeToFile(name,data):
     file = open(name, "w")
