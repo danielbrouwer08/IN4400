@@ -123,26 +123,26 @@ def getJson(): #get all json data (50 entries)
                         sources.append(address(data['txs'][x]['inputs'][y]['prev_out']['addr'],data['txs'][x]['inputs'][y]['prev_out']['value'])) #make a new address object and store it into the sources
                     except Exception as e:
                         print "Error appending a new source"
-                        logging.error(traceback.format_exc()) #log the error
+                        #logging.error(traceback.format_exc()) #log the error
  
                 for y in range(0,len(data['txs'][x]['out'])): #loop over all output bitcoin addresses
                     try:
                         destinations.append(address(data['txs'][x]['out'][y]['addr'],data['txs'][x]['out'][y]['value'])) #make a new address object and store it into the destinations list
                     except Exception as e:
                         print "Error appending a new destination"
-                        logging.error(traceback.format_exc()) #log the error
+                        #logging.error(traceback.format_exc()) #log the error
 
                 try:
                     transactions.append(transaction(t_hash,timestamp,ip,sources,destinations)) #add the transaction to the list
                 except Exception as e:
                     print "Error appending the new transaction"
-                    logging.error(traceback.format_exc()) #log the error
+                    #logging.error(traceback.format_exc()) #log the error
         #else:
             #print("\rTransaction count: %d ; Transaction already saved" % (len(transactions))),
         
     except Exception as e:
         print "Error getting JSON"
-        logging.error(traceback.format_exc())
+        #logging.error(traceback.format_exc())
 
 def writeToFile(name,data):
     file = open(name, "w")
