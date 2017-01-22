@@ -1,3 +1,5 @@
+#Python code for collecting real-time data from Blockchain
+
 import urllib, json, sys, jsonpickle, time
 from time import sleep
 from geoip import geolite2
