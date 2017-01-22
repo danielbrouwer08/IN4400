@@ -59,6 +59,7 @@ def sumTransactionsPerSource(sources,uniqueSources):
         sourcesNew.append(source(usrc.address,0,0))#create a source
         for y, src in enumerate(sources):
             if src.address==usrc.address: #if the same
+		print "\rsumming transaction.. x=%d,y=%d" % (x,y),
                 sourcesNew[x].amount+=src.amount #sum amount of money
                 sourcesNew[x].transactions+=1 #sum amount of transactions
                 
@@ -69,7 +70,8 @@ def findUniqueSources(sources): #find all unique sourcces
     sourcesNew=[] #temp list to store all the source objects
     for x, src in enumerate(sources):
         if (containsSource(src,sourcesNew)==False): #if the source is not already in the new list
-            sourcesNew.append(src) #append it to the list
+        	print "\rNew unique source added.. no.%d" % x,
+		sourcesNew.append(src) #append it to the list
 
 
     return sourcesNew
@@ -135,8 +137,21 @@ def averageTransactionAmount(sources): #calculate the average transaction amount
         #print "amount: % d  transactions: %d",(src.amount,src.transactions)
         totalValue+=src.amount
         totalTrans+=src.transactions
+        print "\rTotal value: " + str(totalValue/100000000.0) + "Total trans: " + str(totalTrans),
+    return totalValue/float(100000000.0)/totalTrans
 
-    return totalValue/100000000/totalTrans
+
+
+def averageTransactions(sources): #calculate the average transaction amount
+    totalTrans=0
+    totalSrcs=0
+    for src in sources:
+        #print "amount: % d  transactions: %d",(src.amount,src.transactions)
+        totalSrcs+=1
+        totalTrans+=src.transactions
+        
+    return totalTrans/totalSrcs
+
 
 
 def sortOnTransactionCount(sources):
@@ -144,15 +159,20 @@ def sortOnTransactionCount(sources):
 
 
 getFromFile()
+print "finding unique transactions and summing them..."
 sourcesUniqueSum=sumTransactionsPerSource(sources,findUniqueSources(sources)) #get all unique sources with there transactions amount summed
+print "calculating average transaction amount.."
 averageTrans=averageTransactionAmount(sourcesUniqueSum) #get the average transaction amount
-
+print "calculating average transactions.."
+averageTransactions=averageTransactions(sourcesUniqueSum)
+print "sorting the sources.."
 sortedSources=sortOnTransactionCount(sourcesUniqueSum)
 
 
 
 file = open("results.txt", "w")
-data="Average transaction amount: " + str(averageTrans) + " = " + str(averageTrans*893.3) +  " USD\n\n";
+data="Average transaction amount: " + str(averageTrans) + " = " + str(averageTrans*893.3) +  " USD\n"
+data+= "Average transactions: " + str(averageTransactions) + "\n\n"
 file.write(data)
 
 for x in range(0,50): #print 50 best sources and store them in a variable
@@ -162,8 +182,8 @@ for x in range(0,50): #print 50 best sources and store them in a variable
 
 file.close() #close the file writer
 
-print "Average transaction amount: %d BTC = %d USD" % (averageTrans,averageTrans*893.3)
-
+print "Average transaction amount: %f BTC = %d USD" % (averageTrans,averageTrans*893.3)
+print "Average transactions: %d" % (averageTransactions)
 
 '''
 for x in range(0,iterations): #iterate over the getJson function
