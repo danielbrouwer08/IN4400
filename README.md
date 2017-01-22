@@ -1,5 +1,5 @@
 # Group 14 IN4400
-This repository contains the Python code for the Bitcoin analysis of the course Program and Datascience for the 99%. In the map src the Python scripts can be found.
+This repository contains the Python code for the Bitcoin analysis of the course Program and Datascience for the 99%. In the directory "src" the Python scripts can be found.
 
 ### blockchain.py 
 This is the script that collects real-time data (run this first for a few minutes)
